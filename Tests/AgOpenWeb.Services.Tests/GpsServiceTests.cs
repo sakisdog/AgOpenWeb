@@ -1,4 +1,5 @@
 using AgOpenWeb.Models;
+using AgOpenWeb.Models.Timing;
 using AgOpenWeb.Services;
 
 namespace AgOpenWeb.Services.Tests;
@@ -7,11 +8,20 @@ namespace AgOpenWeb.Services.Tests;
 public class GpsServiceTests
 {
     private GpsService _service = null!;
+    private TestClock _clock = null!;
 
     [SetUp]
     public void SetUp()
     {
+        _clock = new TestClock();
+        Clock.Set(_clock);
         _service = new GpsService();
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        Clock.Reset();
     }
 
     [Test]
@@ -47,8 +57,13 @@ public class GpsServiceTests
         _service.UpdateGpsData(new GpsData { IsValid = true });
         Assert.That(_service.IsConnected, Is.True);
 
-        System.Threading.Thread.Sleep(400);
+        // Before 2000ms timeout
+        _clock.AdvanceMs(1900);
+        Assert.That(_service.IsGpsDataOk(), Is.True);
+        Assert.That(_service.IsConnected, Is.True);
 
+        // Past 2000ms timeout (1900 + 200 = 2100ms)
+        _clock.AdvanceMs(200);
         bool ok = _service.IsGpsDataOk();
         Assert.That(ok, Is.False);
         Assert.That(_service.IsConnected, Is.False);
@@ -58,7 +73,7 @@ public class GpsServiceTests
     public void IsConnected_RecoverAfterNewData()
     {
         _service.UpdateGpsData(new GpsData { IsValid = true });
-        System.Threading.Thread.Sleep(400);
+        _clock.AdvanceMs(2100);
         _service.IsGpsDataOk();
         Assert.That(_service.IsConnected, Is.False);
 

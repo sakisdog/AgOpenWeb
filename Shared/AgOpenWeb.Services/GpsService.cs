@@ -35,7 +35,7 @@ public class GpsService : IGpsService
 
     private DateTime _lastGpsDataReceived = DateTime.MinValue;
     private DateTime _lastImuDataReceived = DateTime.MinValue;
-    private const int GPS_TIMEOUT_MS = 300; // 10Hz data = 100ms cycle, allow 300ms
+    private const int GPS_TIMEOUT_MS = 2000; // 2000ms timeout (matches AgIO and accommodates Wi-Fi jitter)
     private const int IMU_TIMEOUT_MS = 300; // 10Hz data = 100ms cycle, allow 300ms
 
     // Real-GPS-live gate: stamped ONLY on a successful parse of inbound NMEA
@@ -43,7 +43,7 @@ public class GpsService : IGpsService
     // UpdateGpsData and never parses, so this signal is real-source-only — used
     // to keep the sim and a live GPS source mutually exclusive.
     private DateTime _lastRealGpsParseTime = DateTime.MinValue;
-    private const int GPS_LIVE_TIMEOUT_MS = 2000; // wider than GPS_TIMEOUT_MS so the gate doesn't flap on a dropped packet
+    private const int GPS_LIVE_TIMEOUT_MS = 2000; // matches GPS_TIMEOUT_MS; gate doesn't flap on a dropped packet
 
     public void Start()
     {
